@@ -33,6 +33,17 @@ function cancelPendingChatScroll(host: ScrollHost) {
   }
 }
 
+function hasNestedScrollableAncestor(target: EventTarget | null, container: HTMLElement) {
+  let node = target instanceof HTMLElement ? target : null;
+  while (node && node !== container) {
+    if (node.scrollHeight - node.clientHeight > 1) {
+      return true;
+    }
+    node = node.parentElement;
+  }
+  return false;
+}
+
 export function scheduleChatScroll(host: ScrollHost, force = false, smooth = false) {
   cancelPendingChatScroll(host);
   const pickScrollTarget = () => {
@@ -178,6 +189,9 @@ export function handleChatWheelIntent(host: ScrollHost, event: WheelEvent) {
   }
   const container = event.currentTarget as HTMLElement | null;
   if (!container || container.scrollHeight - container.clientHeight <= 1) {
+    return;
+  }
+  if (hasNestedScrollableAncestor(event.target, container)) {
     return;
   }
   if (!host.chatUserNearBottom && host.chatFollowLocked) {

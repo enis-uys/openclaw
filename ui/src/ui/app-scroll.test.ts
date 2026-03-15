@@ -184,6 +184,30 @@ describe("handleChatWheelIntent", () => {
     expect(host.chatUserNearBottom).toBe(true);
     expect(host.chatFollowLocked).toBe(false);
   });
+
+  it("does not disengage follow for bubbled wheel events from nested scrollables", () => {
+    const { host } = createScrollHost({
+      scrollHeight: 2000,
+      clientHeight: 400,
+    });
+    host.chatUserNearBottom = true;
+
+    const nestedScrollable = document.createElement("div");
+    Object.defineProperty(nestedScrollable, "scrollHeight", { value: 600, configurable: true });
+    Object.defineProperty(nestedScrollable, "clientHeight", { value: 300, configurable: true });
+
+    handleChatWheelIntent(
+      host,
+      {
+        deltaY: -120,
+        currentTarget: { scrollHeight: 2000, clientHeight: 400 },
+        target: nestedScrollable,
+      } as unknown as WheelEvent,
+    );
+
+    expect(host.chatUserNearBottom).toBe(true);
+    expect(host.chatFollowLocked).toBe(false);
+  });
 });
 
 /* ------------------------------------------------------------------ */
